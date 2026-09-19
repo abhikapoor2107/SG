@@ -45,7 +45,7 @@ import requests
 # --------------------------------------------------------------------------
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
-GROQ_MODEL = "llama-3.3-70b-versatile"  # free-tier, fast Groq model
+GROQ_MODEL = "openai/gpt-oss-120b"  # free-tier, fast Groq model
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 REQUEST_TIMEOUT_SECONDS = 30
 
