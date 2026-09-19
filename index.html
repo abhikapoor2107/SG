@@ -63,8 +63,29 @@
   overflow:hidden;
 }
 #dashboard-view.active{display:block}
-.db-answer-box{margin-top:1rem;padding:1rem 1.2rem;background:var(--db-bg-card);border:1px solid rgba(255,255,255,0.08);border-radius:var(--db-radius);line-height:1.6;white-space:pre-wrap}
-.db-answer-box.loading{color:var(--db-text-secondary);font-style:italic}
+
+/* ChatGPT-style conversation thread */
+.db-conv-messages{display:none;flex-direction:column;gap:1.1rem;width:100%;max-width:720px;margin:0 auto;padding:.5rem 0 1rem}
+#dashboard-view.chat-mode .db-conv-messages{display:flex}
+#dashboard-view.chat-mode .db-mascot,
+#dashboard-view.chat-mode .db-title,
+#dashboard-view.chat-mode .db-subtitle,
+#dashboard-view.chat-mode .db-quick-actions,
+#dashboard-view.chat-mode .db-lessons{display:none}
+#dashboard-view.chat-mode .db-hero{max-width:760px}
+#dashboard-view.chat-mode .db-dashboard{justify-content:flex-start}
+#dashboard-view.chat-mode .db-prompt-box{position:sticky;bottom:.5rem;z-index:5}
+.db-msg{display:flex;gap:.65rem;align-items:flex-start}
+.db-msg.user{flex-direction:row-reverse}
+.db-msg-avatar{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:.75rem;font-weight:700}
+.db-msg.user .db-msg-avatar{background:var(--db-accent);color:#fff}
+.db-msg.bot .db-msg-avatar{background:rgba(255,255,255,0.1);color:var(--db-text-primary)}
+.db-msg-bubble{max-width:78%;padding:.75rem 1rem;border-radius:14px;line-height:1.6;font-size:.95rem;white-space:pre-wrap}
+.db-msg.user .db-msg-bubble{background:var(--db-accent);color:#fff;border-bottom-right-radius:4px}
+.db-msg.bot .db-msg-bubble{background:var(--db-bg-card);border:1px solid rgba(255,255,255,0.08);border-bottom-left-radius:4px}
+.db-msg-bubble.loading{color:var(--db-text-secondary);font-style:italic}
+.db-new-chat{background:rgba(255,255,255,0.08);color:var(--db-text-primary)}
+.db-new-chat:hover{background:rgba(255,255,255,0.16)}
 #db-starfield{position:absolute;inset:0;width:100%;height:100%;z-index:0}
 .db-app{position:relative;z-index:1;display:flex;flex-direction:column;height:100%}
 .db-header{display:flex;justify-content:space-between;align-items:center;padding:.8rem 1.5rem;
@@ -426,6 +447,7 @@
           </div>
         </div>
 
+        <button class="db-btn db-new-chat" id="db-new-chat" type="button">+ New Chat</button>
         <button class="db-btn db-back" type="button" onclick="closeDashboard()">← Back to website</button>
         <button class="db-btn db-upgrade" type="button">Upgrade</button>
         <button class="db-icon-btn db-avatar" aria-label="User profile">
@@ -446,6 +468,9 @@
 
         <h1 class="db-title">What do you want to learn?</h1>
         <p class="db-subtitle">Turn anything into a focused learning session.</p>
+
+        <!-- ChatGPT-style conversation thread; hidden until first message -->
+        <div class="db-conv-messages" id="db-conv-messages"></div>
 
         <!-- Refactored Prompt Box Layout -->
         <div class="db-prompt-box" id="db-prompt-box">
@@ -483,9 +508,6 @@
             </div>
           </div>
         </div>
-
-        <!-- SankhyaGuru's answer to the main prompt box renders here -->
-        <div class="db-answer-box" id="db-answer-box" style="display:none;"></div>
       </section>
 
       <section class="db-quick-actions">
@@ -967,11 +989,54 @@ document.addEventListener('DOMContentLoaded', () => {
     upgradeBtn.addEventListener('click', () => alert('🚧 Pro Upgrade Flow Placeholder.'));
   }
 
-  // Submit Prompt Handler — calls the SankhyaGuru backend
+  // Submit Prompt Handler — calls the SankhyaGuru backend, renders as a chat thread
   const submitBtn = document.getElementById('db-submit-btn');
-  const answerBox = document.getElementById('db-answer-box');
+  const convMessages = document.getElementById('db-conv-messages');
+  const dashboardView = document.getElementById('dashboard-view');
+  const dbDashboardScroll = document.querySelector('.db-dashboard');
+  const newChatBtn = document.getElementById('db-new-chat');
+
+  function scrollConvToBottom() {
+    if (dbDashboardScroll) {
+      dbDashboardScroll.scrollTop = dbDashboardScroll.scrollHeight;
+    }
+  }
+
+  function addMessageBubble(role, text) {
+    const msg = document.createElement('div');
+    msg.className = `db-msg ${role}`;
+    const avatar = document.createElement('div');
+    avatar.className = 'db-msg-avatar';
+    avatar.textContent = role === 'user' ? 'You' : 'S';
+    const bubble = document.createElement('div');
+    bubble.className = 'db-msg-bubble';
+    bubble.textContent = text;
+    msg.appendChild(avatar);
+    msg.appendChild(bubble);
+    convMessages.appendChild(msg);
+    scrollConvToBottom();
+    return bubble;
+  }
+
+  if (newChatBtn) {
+    newChatBtn.addEventListener('click', () => {
+      convMessages.innerHTML = '';
+      chatHistory.length = 0;
+      dashboardView.classList.remove('chat-mode');
+    });
+  }
 
   if (submitBtn) {
+    const promptEl = document.getElementById('prompt');
+    if (promptEl) {
+      promptEl.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+          e.preventDefault();
+          submitBtn.click();
+        }
+      });
+    }
+
     submitBtn.addEventListener('click', async () => {
       const promptInput = document.getElementById('prompt');
       const text = promptInput ? promptInput.value.trim() : '';
@@ -982,9 +1047,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      answerBox.style.display = 'block';
-      answerBox.classList.add('loading');
-      answerBox.textContent = 'SankhyaGuru is thinking…';
+      dashboardView.classList.add('chat-mode');
+      addMessageBubble('user', text);
+      const botBubble = addMessageBubble('bot', '…');
+      botBubble.classList.add('loading');
       submitBtn.disabled = true;
 
       try {
@@ -995,19 +1061,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         const data = await res.json();
 
-        answerBox.classList.remove('loading');
-        answerBox.textContent = data.reply || 'Sorry, something went wrong. Please try again.';
+        botBubble.classList.remove('loading');
+        botBubble.textContent = data.reply || 'Sorry, something went wrong. Please try again.';
 
         // keep running context so follow-up questions have memory
         chatHistory.push({ role: 'user', content: text });
         chatHistory.push({ role: 'assistant', content: data.reply || '' });
       } catch (err) {
-        answerBox.classList.remove('loading');
-        answerBox.textContent = 'Could not reach SankhyaGuru right now. Please try again in a moment.';
+        botBubble.classList.remove('loading');
+        botBubble.textContent = 'Could not reach SankhyaGuru right now. Please try again in a moment.';
       } finally {
         submitBtn.disabled = false;
         if (promptInput) promptInput.value = '';
         FileUploader.clearAll();
+        scrollConvToBottom();
       }
     });
   }
