@@ -1,0 +1,114 @@
+[
+  {
+    "title": "Data-Driven Decision Making for Government",
+    "domain": "Statistical",
+    "level": "Beginner",
+    "hours": 2,
+    "url": "https://igotkarmayogi.gov.in",
+    "source": "public-report"
+  },
+  {
+    "title": "Survey Design and Sampling Basics",
+    "domain": "Statistical",
+    "level": "Beginner",
+    "hours": 3,
+    "url": "https://igotkarmayogi.gov.in",
+    "source": "sample"
+  },
+  {
+    "title": "Index Numbers and CPI Concepts",
+    "domain": "Statistical",
+    "level": "Intermediate",
+    "hours": 3,
+    "url": "https://igotkarmayogi.gov.in",
+    "source": "sample"
+  },
+  {
+    "title": "National Accounts and SDG Indicators",
+    "domain": "Statistical",
+    "level": "Advanced",
+    "hours": 4,
+    "url": "https://igotkarmayogi.gov.in",
+    "source": "sample"
+  },
+  {
+    "title": "Introduction to Data Analysis with Python",
+    "domain": "Technical",
+    "level": "Beginner",
+    "hours": 4,
+    "url": "https://igotkarmayogi.gov.in",
+    "source": "sample"
+  },
+  {
+    "title": "SQL and Databases for Officials",
+    "domain": "Technical",
+    "level": "Intermediate",
+    "hours": 4,
+    "url": "https://igotkarmayogi.gov.in",
+    "source": "sample"
+  },
+  {
+    "title": "GIS Fundamentals for Administration",
+    "domain": "Technical",
+    "level": "Intermediate",
+    "hours": 3,
+    "url": "https://igotkarmayogi.gov.in",
+    "source": "sample"
+  },
+  {
+    "title": "Applied AI and Machine Learning in Governance",
+    "domain": "Technical",
+    "level": "Advanced",
+    "hours": 5,
+    "url": "https://igotkarmayogi.gov.in",
+    "source": "sample"
+  },
+  {
+    "title": "Cyber Hygiene for Government Employees",
+    "domain": "Digital Governance",
+    "level": "Beginner",
+    "hours": 2,
+    "url": "https://igotkarmayogi.gov.in",
+    "source": "sample"
+  },
+  {
+    "title": "Data Privacy and Consent Essentials",
+    "domain": "Digital Governance",
+    "level": "Intermediate",
+    "hours": 3,
+    "url": "https://igotkarmayogi.gov.in",
+    "source": "sample"
+  },
+  {
+    "title": "Digital Public Infrastructure and E-Governance",
+    "domain": "Digital Governance",
+    "level": "Advanced",
+    "hours": 4,
+    "url": "https://igotkarmayogi.gov.in",
+    "source": "sample"
+  },
+  {
+    "title": "Code of Conduct for Govt Employees",
+    "domain": "Behavioural",
+    "level": "Beginner",
+    "hours": 1,
+    "url": "https://igotkarmayogi.gov.in",
+    "source": "public-report"
+  },
+  {
+    "title": "Effective Communication",
+    "domain": "Behavioural",
+    "level": "Intermediate",
+    "hours": 2,
+    "url": "https://igotkarmayogi.gov.in",
+    "source": "public-report"
+  },
+  {
+    "title": "Leadership and Ethics in Public Service",
+    "domain": "Behavioural",
+    "level": "Advanced",
+    "hours": 3,
+    "url": "https://igotkarmayogi.gov.in",
+    "source": "sample"
+  }
+]
