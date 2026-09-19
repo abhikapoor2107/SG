@@ -414,7 +414,8 @@
           <button class="db-btn db-new-chat" id="db-new-chat" type="button">+ New Chat</button>
           <button class="db-btn db-back" type="button" onclick="closeDashboard()">← Back to website</button>
           <a class="db-btn db-igot" href="https://igotkarmayogi.gov.in" target="_blank" rel="noopener">iGOT Karmayogi ↗</a>
-          <button class="db-icon-btn db-avatar" aria-label="User profile" type="button">
+          <span id="db-user-name" style="font-size:11px;color:var(--muted);display:none;"></span>
+          <button class="db-icon-btn db-avatar" id="db-avatar-btn" aria-label="User profile" type="button" onclick="handleAvatarClick()">
             <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
               <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
             </svg>
@@ -570,13 +571,90 @@
   </div></main>
 </section>
 
+<!-- Firebase (compat build — works with plain <script> tags, no bundler needed) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
 const $=id=>document.getElementById(id);
+
+/* -------------------------------------------------
+   Firebase Auth — Google sign-in
+------------------------------------------------- */
+const firebaseConfig = {
+  apiKey: "AIzaSyCy-ofmtEFkk1NRRVmEsqEmy-S7V8i3SR8",
+  authDomain: "sankyaguruu.firebaseapp.com",
+  projectId: "sankyaguru",
+  storageBucket: "sankyaguru.firebasestorage.app",
+  messagingSenderId: "470069814944",
+  appId: "1:470069814944:web:5bae2ae3589db171a1cbc5",
+  measurementId: "G-4MYG1YB0V1"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+let currentUser = null;
+let pendingDashboardOpen = false;
+
+auth.onAuthStateChanged(user=>{
+  currentUser = user;
+  updateAuthUI(user);
+  if(user && pendingDashboardOpen){
+    pendingDashboardOpen = false;
+    showDashboardView();
+  }
+});
+
+function updateAuthUI(user){
+  const startBtns = document.querySelectorAll('[onclick="openDashboard()"]');
+  const avatarBtn = $("db-avatar-btn");
+  const nameTag = $("db-user-name");
+  if(user){
+    startBtns.forEach(b=>{ if(/Get Started/.test(b.textContent)) b.textContent = b.textContent.replace("Get Started","Go to Dashboard"); });
+    if(avatarBtn && user.photoURL){
+      avatarBtn.innerHTML = `<img src="${user.photoURL}" alt="${user.displayName||'User'}" referrerpolicy="no-referrer" style="width:22px;height:22px;border-radius:50%;object-fit:cover;display:block;">`;
+    }
+    if(avatarBtn) avatarBtn.title = `${user.displayName||user.email} — click to sign out`;
+    if(nameTag){ nameTag.textContent = user.displayName || user.email || ""; nameTag.style.display="inline"; }
+  } else {
+    startBtns.forEach(b=>{ if(/Go to Dashboard/.test(b.textContent)) b.textContent = b.textContent.replace("Go to Dashboard","Get Started"); });
+    if(avatarBtn){
+      avatarBtn.innerHTML = `<svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+      avatarBtn.title = "Sign in with Google";
+    }
+    if(nameTag){ nameTag.textContent=""; nameTag.style.display="none"; }
+  }
+}
+
+function signInWithGoogle(){
+  return auth.signInWithPopup(googleProvider);
+}
+function signOutUser(){
+  return auth.signOut();
+}
+function handleAvatarClick(){
+  if(currentUser){
+    if(confirm(`Signed in as ${currentUser.displayName||currentUser.email}. Sign out?`)) signOutUser();
+  } else {
+    signInWithGoogle().catch(err=>alert("Sign-in failed: "+err.message));
+  }
+}
 
 /* -------------------------------------------------
    View switching
 ------------------------------------------------- */
 function openDashboard(){
+  if(!currentUser){
+    pendingDashboardOpen = true;
+    signInWithGoogle().catch(err=>{
+      pendingDashboardOpen = false;
+      if(err.code!=="auth/popup-closed-by-user") alert("Sign-in failed: "+err.message);
+    });
+    return;
+  }
+  showDashboardView();
+}
+function showDashboardView(){
   $("website").style.display="none";
   $("mcq-view").classList.remove("active");
   $("dashboard-view").classList.add("active");
